@@ -23,7 +23,7 @@ const Header: React.FC = () => {
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center space-x-2" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
           <Trophy size={24} />
-          <h1 className="text-xl font-bold">Dino Betting Game</h1>
+          <h1 className="text-xl font-bold">Dino Game</h1>
         </div>
         
         {user && (
