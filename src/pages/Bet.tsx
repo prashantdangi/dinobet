@@ -21,16 +21,13 @@ const Bet: React.FC = () => {
     setError('');
     
     try {
-      console.log('Initiating payment...');
       const paymentResponse = await PaymentService.initiatePayment(50);
-      
-      console.log('Payment response:', paymentResponse);
       
       if (!paymentResponse.success) {
         throw new Error(paymentResponse.message || 'Payment failed');
       }
 
-      // Create a game session
+      // Create game session
       const gameId = auth.currentUser.uid;
       const gameData = {
         userId: gameId,
@@ -40,15 +37,16 @@ const Bet: React.FC = () => {
         status: 'active',
         score: 0,
         orderId: paymentResponse.orderId,
+        paymentStatus: 'completed',
+        paymentTimestamp: new Date(),
       };
-
-      console.log('Creating game session...', gameData);
 
       // Update user profile
       await createOrUpdateUserProfile(gameId, {
         lastGameId: gameId,
         totalGamesPlayed: increment(1),
         lastBetAmount: 50,
+        lastPaymentId: paymentResponse.orderId,
       });
 
       // Create game session
@@ -57,7 +55,17 @@ const Bet: React.FC = () => {
       navigate('/game');
     } catch (error: any) {
       console.error('Detailed error:', error);
-      setError(`Payment failed: ${error.message}`);
+      setError(error.message || 'Failed to process payment');
+      
+      // Log failed payment attempt
+      if (auth.currentUser) {
+        await createOrUpdateUserProfile(auth.currentUser.uid, {
+          lastPaymentError: {
+            timestamp: new Date(),
+            message: error.message,
+          },
+        });
+      }
     } finally {
       setLoading(false);
     }
